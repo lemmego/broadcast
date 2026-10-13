@@ -23,6 +23,18 @@ type Bus interface {
 	Close() error
 }
 
+// Pinger is the optional interface a Bus implements when it can report
+// whether its backing is reachable.
+//
+// A provider checks it at boot, so a bus that was explicitly configured and
+// cannot be reached fails the boot rather than appearing to work. The
+// alternative — falling back to the in-process bus — passes staging, where
+// there is one replica and every subscriber is local, and then loses half the
+// events in production where there are two.
+type Pinger interface {
+	Ping(ctx context.Context) error
+}
+
 // Delivery is one event arriving from the bus.
 type Delivery struct {
 	Channel Channel

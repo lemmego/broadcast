@@ -11,6 +11,7 @@ package provider
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -49,9 +50,22 @@ type Provider struct {
 	// one configuration file, which is the point.
 	AllowedOrigins []string
 
-	// Bus overrides the configured bus. Nil means the in-process memory bus,
-	// which is a supported mode for a single binary and not a degraded one.
+	// Bus is the bus to use. Nil means the in-process memory bus, which is a
+	// supported mode for a single binary and not a degraded one.
 	Bus broadcast.Bus
+
+	// BusFor resolves the bus from the container, for a bus that needs
+	// configuration or a connection the options cannot reach — which is
+	// every bus that crosses a process boundary.
+	//
+	// A function rather than a value for the reason auth's SocialStore
+	// records: a provider list is written before the container exists. It is
+	// called once during Provide, and an error fails the boot — which is the
+	// point. A bus that was asked for and cannot be reached must not quietly
+	// become the in-process one.
+	//
+	// Takes precedence over Bus when both are set.
+	BusFor func(a app.App) (broadcast.Bus, error)
 
 	// DrainOnSignal installs its own SIGINT/SIGTERM watcher as a fallback.
 	//
@@ -143,8 +157,13 @@ func (p *Provider) Provide(a app.App) error {
 	// — which is what lemmego/notify publishes to.
 	p.Channel("private-user.{subject}", OwnSubject)
 
+	bus, err := p.resolveBus(a)
+	if err != nil {
+		return err
+	}
+
 	cfg := p.Config
-	cfg.Bus = p.Bus
+	cfg.Bus = bus
 	cfg.Authorizer = p.authorizer(a)
 	if cfg.Logger == nil {
 		cfg.Logger = slog.Default()
@@ -153,7 +172,7 @@ func (p *Provider) Provide(a app.App) error {
 
 	a.AddService(p.hub)
 
-	if p.Bus == nil {
+	if bus == nil {
 		slog.Info("broadcast: using the in-process bus — events reach only " +
 			"the connections this process holds")
 	}
@@ -171,6 +190,39 @@ func (p *Provider) Provide(a app.App) error {
 	}
 
 	return nil
+}
+
+// resolveBus builds the bus and proves it is reachable.
+//
+// A bus that implements Pinger is pinged here, so a Redis that was configured
+// and is unreachable fails the boot. That is the whole reason this is not a
+// plain field: a failure has to be able to stop the process from serving,
+// and a value assembled before the container exists has nowhere to report
+// one.
+func (p *Provider) resolveBus(a app.App) (broadcast.Bus, error) {
+	bus := p.Bus
+	if p.BusFor != nil {
+		resolved, err := p.BusFor(a)
+		if err != nil {
+			return nil, fmt.Errorf("broadcast: the bus could not be built: %w", err)
+		}
+		bus = resolved
+	}
+	if bus == nil {
+		return nil, nil
+	}
+
+	if pinger, ok := bus.(broadcast.Pinger); ok {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := pinger.Ping(ctx); err != nil {
+			return nil, fmt.Errorf("broadcast: the configured bus is "+
+				"unreachable, so this process refuses to start rather than "+
+				"falling back to an in-process bus that would lose every "+
+				"event meant for another replica: %w", err)
+		}
+	}
+	return bus, nil
 }
 
 // authorizer turns the registered rules into the hub's Authorizer.

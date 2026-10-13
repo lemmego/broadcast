@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -269,3 +270,82 @@ func nextFrame(t *testing.T, reader *bufio.Reader) broadcast.Frame {
 	t.Fatal("no frame arrived")
 	return broadcast.Frame{}
 }
+
+// A bus that was asked for and cannot be reached must fail the boot. Falling
+// back to the in-process bus passes staging, where there is one replica and
+// every subscriber is local, and then loses half the events in production
+// where there are two.
+func TestAnUnreachableBusFailsTheBoot(t *testing.T) {
+	engine := app.Configure()
+	engine.WithConfig(config.M{
+		"app": config.M{"name": "broadcast-test", "env": "test", "port": 0},
+	})
+
+	p := &bprovider.Provider{
+		AllowedOrigins: []string{"https://productshore.test"},
+		BusFor: func(app.App) (broadcast.Bus, error) {
+			return unreachableBus{}, nil
+		},
+	}
+
+	err := p.Provide(engine)
+	if err == nil {
+		t.Fatal("an unreachable bus was accepted, so this process would serve " +
+			"connections it cannot deliver to")
+	}
+	if !strings.Contains(err.Error(), "unreachable") {
+		t.Fatalf("the refusal does not say what is wrong: %v", err)
+	}
+}
+
+// A bus that cannot be built at all is the same answer: a boot failure, not a
+// silent downgrade.
+func TestABusThatCannotBeBuiltFailsTheBoot(t *testing.T) {
+	engine := app.Configure()
+	engine.WithConfig(config.M{
+		"app": config.M{"name": "broadcast-test", "env": "test", "port": 0},
+	})
+
+	p := &bprovider.Provider{
+		AllowedOrigins: []string{"https://productshore.test"},
+		BusFor: func(app.App) (broadcast.Bus, error) {
+			return nil, errors.New("no redis address was configured")
+		},
+	}
+
+	if err := p.Provide(engine); err == nil {
+		t.Fatal("a bus that could not be built was accepted")
+	}
+}
+
+// And no bus at all is the supported single-binary mode rather than an error.
+func TestNoBusIsTheInProcessMode(t *testing.T) {
+	engine := app.Configure()
+	engine.WithConfig(config.M{
+		"app": config.M{"name": "broadcast-test", "env": "test", "port": 0},
+	})
+
+	p := &bprovider.Provider{AllowedOrigins: []string{"https://productshore.test"}}
+	if err := p.Provide(engine); err != nil {
+		t.Fatalf("a provider with no bus failed to boot: %v", err)
+	}
+	t.Cleanup(func() { p.Hub().Close() })
+}
+
+// unreachableBus reports itself unreachable, which is what a Redis that is
+// down does.
+type unreachableBus struct{}
+
+func (unreachableBus) Ping(context.Context) error {
+	return errors.New("dial tcp 127.0.0.1:6379: connect: connection refused")
+}
+
+func (unreachableBus) Publish(context.Context, broadcast.Channel, broadcast.Event) error {
+	return nil
+}
+
+func (unreachableBus) Subscribe(context.Context, broadcast.Channel) (<-chan broadcast.Delivery, func(), error) {
+	return nil, func() {}, nil
+}
+
+func (unreachableBus) Close() error { return nil }
