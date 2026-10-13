@@ -133,8 +133,8 @@ github.com/jmespath/go-jmespath/internal/testify v1.5.1 h1:shLQSRRSCCPj3f2gpwzGw
 github.com/jmespath/go-jmespath/internal/testify v1.5.1/go.mod h1:L3OGu8Wl2/fWfCI6z80xFu9LTZmf1ZRjMHUOPmWr69U=
 github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
 github.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
-github.com/lemmego/api v0.4.1 h1:IGwTJ/PzsfZyDOQ/Qw07p6A5PhYOmJLS/fdn6+4wq9E=
-github.com/lemmego/api v0.4.1/go.mod h1:ogokN/iR84IKRAjCFX2oVuV7Sr5PAnO5UEia3Abt+c4=
+github.com/lemmego/api v0.5.0 h1:Xf/uNBrwKG+mbwv922RJQUaZTTUYuR+VzUpgCKnCtVg=
+github.com/lemmego/api v0.5.0/go.mod h1:ogokN/iR84IKRAjCFX2oVuV7Sr5PAnO5UEia3Abt+c4=
 github.com/lemmego/auth v0.3.1 h1:G1POcJfpUlyZrHuvyZIkALCwvtPfHTMS3mVIcUAjxPk=
 github.com/lemmego/auth v0.3.1/go.mod h1:VhmlbF9SQ6JdT3W1dIamPPG72pDCvhBhez3aOikEJ/g=
 github.com/lemmego/fsys v0.1.0 h1:P4fpotnq62sOGHLiUwX0zWVz/X4HnNJY0XY+fQxNowE=

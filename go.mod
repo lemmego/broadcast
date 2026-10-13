@@ -6,7 +6,7 @@ require (
 	github.com/alicebob/miniredis/v2 v2.35.0
 	github.com/coder/websocket v1.8.12
 	github.com/go-redis/redis/v8 v8.11.5
-	github.com/lemmego/api v0.4.1
+	github.com/lemmego/api v0.5.0
 	github.com/lemmego/auth v0.3.1
 )
 
@@ -89,7 +89,3 @@ require (
 	modernc.org/memory v1.11.0 // indirect
 	modernc.org/sqlite v1.46.1 // indirect
 )
-
-// Note: provider/ uses app.ServerStopping, added in api after v0.4.1. The
-// workspace build and the whole test suite pass; a standalone
-// `GOWORK=off go build ./...` will fail until api is tagged and pushed.
