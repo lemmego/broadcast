@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"strings"
@@ -300,9 +301,39 @@ func (p *Provider) originPatterns() []string {
 		if origin == "*" {
 			continue
 		}
-		out = append(out, origin)
+		out = append(out, originHost(origin))
 	}
 	return out
+}
+
+// originHost reduces an allowlist entry to the form a WebSocket handshake is
+// matched against, which is the Origin header's host and not a URL.
+//
+// This conversion is the function's whole reason to exist. coder/websocket
+// runs filepath.Match(pattern, u.Host), so an entry carrying a scheme is
+// compared against "productshore.com" as "https://productshore.com" and can
+// never match — while this package's own checkOrigin accepts either form. So
+// a cross-origin allowance written the obvious way, by copying APP_URL, was
+// accepted by the first check and silently refused by the second.
+//
+// Silent in the worst way, too: Accept short-circuits when Origin's host
+// equals r.Host, so same-origin connections worked and nothing surfaced until
+// somebody configured the cross-origin case the field exists for.
+//
+// A glob is left alone. url.Parse reads "*.productshore.com" as a path with
+// no host, so the scheme test comes first; coder/websocket does support that
+// pattern, which is more than checkOrigin's exact comparison allows, and the
+// asymmetry is recorded in the README rather than smoothed over here.
+func originHost(origin string) string {
+	if !strings.Contains(origin, "://") {
+		return strings.TrimSuffix(origin, "/")
+	}
+	if parsed, err := url.Parse(origin); err == nil && parsed.Host != "" {
+		return parsed.Host
+	}
+	// Unparseable, so forward it verbatim and let the handshake refuse it.
+	// Dropping it would widen the allowlist by making the entry disappear.
+	return origin
 }
 
 // handler authorizes, then accepts, then serves.

@@ -80,7 +80,21 @@ equally exposed:
 
 `AllowedOrigins` is **required**. An unset allowlist is the difference between
 a private channel and a public one, so it is a boot error rather than a
-default. `[]string{"*"}` is honoured, because somebody wrote it down.
+default. Entries may be written as a URL (`https://productshore.com`) or as a
+bare host (`productshore.com`); a WebSocket handshake is matched against the
+host, so the scheme is stripped before it gets there.
+
+Two asymmetries between the transports, both deliberate and both stricter on
+the WebSocket side:
+
+- `[]string{"*"}` is honoured for an event stream, because somebody wrote it
+  down, and means **same-origin only** for a WebSocket. Forwarding it as a
+  handshake pattern would let any origin on the internet open an
+  authenticated socket, which is the setting `coder/websocket`'s own
+  documentation asks callers not to reach for by accident.
+- A glob (`*.productshore.com`) works for a WebSocket, where the library
+  supports it, and not for an event stream, whose check is an exact
+  comparison. Write the hosts out if you need both.
 
 Authorization runs **before the protocol is established**, and again for any
 channel added mid-connection. A refusal is an HTTP status: a browser gets
