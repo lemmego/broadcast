@@ -54,18 +54,6 @@ func (s *connState) subscribed() []Channel {
 	return append([]Channel(nil), s.channels...)
 }
 
-// withoutCommands wraps a Conn whose command channel has closed.
-//
-// A closed channel in a select is always ready, so a transport with no
-// inbound path would spin the pump loop at the speed of the scheduler. This
-// returns a nil channel instead, which blocks forever — the correct
-// behaviour, and the reason Conn.Commands is documented to return a closed
-// channel rather than a nil one: a nil channel handed over at the start would
-// have made this bug invisible instead of noisy.
-type withoutCommands struct{ Conn }
-
-func (withoutCommands) Commands() <-chan Command { return nil }
-
 // subscriptions holds one connection's bus subscriptions.
 //
 // One Subscribe per channel. A bus that wants to serve many connections from

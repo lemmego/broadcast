@@ -292,6 +292,17 @@ func (h *Hub) pump(ctx context.Context, state *connState, subs *subscriptions) e
 	heartbeat := time.NewTicker(h.cfg.Heartbeat)
 	defer heartbeat.Stop()
 
+	// Held locally rather than read from state on each turn, because this is
+	// the one thing in the loop that gets replaced: a transport with no
+	// inbound path hands over a closed channel, which is always ready in a
+	// select and would spin this loop at the speed of the scheduler. Setting
+	// the local to nil makes that case block forever instead.
+	//
+	// It was briefly done by replacing state.conn, which the race detector
+	// caught at once: a bus forwarder reads state.conn from its own
+	// goroutine in order to close the connection.
+	commands := state.conn.Commands()
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -334,12 +345,9 @@ func (h *Hub) pump(ctx context.Context, state *connState, subs *subscriptions) e
 				return err
 			}
 
-		case command, ok := <-state.conn.Commands():
+		case command, ok := <-commands:
 			if !ok {
-				// A transport with no inbound path returns a closed channel,
-				// which would otherwise spin this loop. Replaced with nil so
-				// this case blocks forever instead.
-				state.conn = withoutCommands{state.conn}
+				commands = nil
 				continue
 			}
 			if err := h.handleCommand(ctx, state, subs, command); err != nil {
