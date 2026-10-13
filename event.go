@@ -1,6 +1,7 @@
 package broadcast
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
@@ -65,6 +66,35 @@ func NewEvent(name string, payload any) (Event, error) {
 		return Event{}, err
 	}
 	return event, nil
+}
+
+// DataAs decodes this event's payload.
+//
+// A method with its own type parameter, which this Go allows on a concrete
+// type — so a subscriber writes what it means:
+//
+//	payload, err := event.DataAs[NotificationCreated]()
+//
+// rather than declaring a variable and remembering to pass its address. It is
+// the shape cache's GetAs uses, and the reason Event is a struct: a generic
+// method cannot exist on an interface, which is also why Bus and Conn carry
+// no generic methods of their own.
+//
+// Numbers decode as json.Number, so a large integer that a float64 could not
+// hold survives — which it would not through a map[string]any, where
+// 9007199254740993 comes back as the even number below it.
+func (e Event) DataAs[T any]() (T, error) {
+	var out T
+	if len(e.Data) == 0 {
+		return out, nil
+	}
+	decoder := json.NewDecoder(bytes.NewReader(e.Data))
+	decoder.UseNumber()
+	if err := decoder.Decode(&out); err != nil {
+		return out, fmt.Errorf("broadcast: decoding the payload of %q: %w",
+			e.Name, err)
+	}
+	return out, nil
 }
 
 // Validate reports why an event cannot be sent.

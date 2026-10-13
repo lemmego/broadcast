@@ -37,6 +37,7 @@ type client struct {
 
 	mu      sync.Mutex
 	stalled bool
+	stall   chan struct{}
 
 	frames chan broadcast.Frame
 	errs   chan error
@@ -84,6 +85,7 @@ func dial(t *testing.T, base *url.URL, channels []broadcast.Channel) (transportt
 		frames:   make(chan broadcast.Frame, 128),
 		errs:     make(chan error, 1),
 		closed:   make(chan struct{}),
+		stall:    make(chan struct{}),
 	}
 	go c.read()
 	t.Cleanup(func() { c.Close() })
@@ -100,6 +102,22 @@ func (c *client) read() {
 		data      strings.Builder
 	)
 	for {
+		// Stalling stops reading the socket entirely, rather than reading
+		// and discarding.
+		//
+		// The first version discarded, which meant the server's writes always
+		// succeeded and the hub's queue drained as fast as it filled — so the
+		// overflow case passed only when the publish loop happened to outrun
+		// the scheduler, and failed otherwise. A client that stops reading is
+		// what a slow client actually is: the kernel buffer fills, the
+		// server's write blocks, and the queue overflows for a reason rather
+		// than by luck.
+		select {
+		case <-c.stall:
+			return
+		default:
+		}
+
 		line, err := c.reader.ReadString('\n')
 		if err != nil {
 			select {
@@ -130,15 +148,6 @@ func (c *client) read() {
 }
 
 func (c *client) deliver(name, payload string) {
-	c.mu.Lock()
-	stalled := c.stalled
-	c.mu.Unlock()
-	if stalled {
-		// Read but not delivered, which is how Stall makes the server's own
-		// queue fill without closing the socket.
-		return
-	}
-
 	var wire struct {
 		Kind    broadcast.FrameKind `json:"kind"`
 		Channel broadcast.Channel   `json:"channel"`
@@ -197,8 +206,12 @@ func (c *client) Send(broadcast.Command) error {
 
 func (c *client) Stall() {
 	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.stalled {
+		return
+	}
 	c.stalled = true
-	c.mu.Unlock()
+	close(c.stall)
 }
 
 func (c *client) Close() error {
