@@ -1,0 +1,70 @@
+# This workflow runs in THIS module's own repository, where the repository
+# root is the module root.
+#
+# That is why there are no `paths:` filters and no `cd` into a subdirectory.
+# The three workflows that used to exist in this monorepo were written as
+# though it were a single repository, filtering on paths like "api/**" and
+# "go.work" which do not exist in a per-module checkout. They therefore never
+# triggered — `gh run list` reported zero runs for queue and tasker ever, and
+# nothing but GitHub's own Dependency Graph for api — and every step would
+# have failed if they had, since `cd api`, `go build ./api/...` and
+# `go work sync` all name things that are not there.
+#
+# There is also no GOWORK=off step. That distinction matters in the monorepo
+# working tree, where a workspace can mask a missing requirement; here there
+# is no go.work at all, so the ordinary run already is the standalone one.
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # go-version-file rather than a literal: the module declares the version
+      # it needs. The old workflow ran a matrix of 1.25 and 1.26 against
+      # modules that declare go 1.27, so it was testing something nobody runs.
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          check-latest: true
+
+      - name: go.mod and go.sum are tidy
+        run: |
+          go mod tidy
+          git diff --exit-code -- go.mod go.sum
+
+      - name: Build
+        run: go build ./...
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test
+        run: go test -race -count=1 ./...
+
+      # The TypeScript client has its own manifest so that it type-checks
+      # without an application beside it. It shipped once with a tsconfig.json
+      # naming an absolute path into another project, which resolved on one
+      # machine and nowhere else; this is the step that would have caught it.
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Type-check the browser client
+        working-directory: client
+        run: |
+          pnpm install --ignore-workspace
+          pnpm run typecheck
