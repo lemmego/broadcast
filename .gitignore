@@ -1,0 +1,4 @@
+# The TypeScript client's dev dependencies. Only @types/react and tsc, so the
+# client can be type-checked on its own machine rather than against whichever
+# application happened to be checked out next to it.
+client/node_modules/

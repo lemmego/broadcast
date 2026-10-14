@@ -13,16 +13,7 @@
     "noUnusedParameters": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "jsx": "react-jsx",
-    "baseUrl": ".",
-    "paths": {
-      "react": [
-        "/Users/tanmay/code/productshore/node_modules/@types/react"
-      ]
-    },
-    "typeRoots": [
-      "/Users/tanmay/code/productshore/node_modules/@types"
-    ]
+    "jsx": "react-jsx"
   },
   "include": [
     "broadcast.ts",

@@ -105,6 +105,32 @@ func (c *fakeConn) waitForClose(t *testing.T) CloseReason {
 	}
 }
 
+// waitForConnections blocks until the hub has registered n connections.
+//
+// Every other test here synchronises on the ready frame, which proves the
+// connection is subscribed because the hub sends it after subscribing. The
+// slow-consumer test cannot: the whole point of that test is that the write
+// of the ready frame is blocked, so no frame will ever arrive. Publishing
+// without waiting made it a race — and one that resolved the wrong way under
+// the load of the rest of the package, where the scheduler let fifty
+// publishes land before Serve had subscribed anything, so nothing was
+// queued, nothing overflowed, and the connection was never closed. It passed
+// alone and failed in the suite, which is the worst arrangement: the
+// documented promise that a slow client is closed rather than quietly
+// starved was going unverified.
+func waitForConnections(t *testing.T, hub *Hub, n int) {
+	t.Helper()
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		if hub.Stats().Connections >= n {
+			return
+		}
+		time.Sleep(time.Millisecond)
+	}
+	t.Fatalf("the hub registered %d connections, want %d",
+		hub.Stats().Connections, n)
+}
+
 func permit() Authorizer {
 	return AuthorizerFunc(func(context.Context, *http.Request, Channel) error { return nil })
 }
@@ -329,6 +355,11 @@ func TestASlowConnectionIsClosedRatherThanQuietlyMissingEvents(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go hub.Serve(ctx, conn, request(), []Channel{"private-user.1"}, nil)
+	// Not waitForFrames: the ready frame is the write this test blocks, so no
+	// frame will ever arrive. The hub's own connection count is the only
+	// synchronisation point available, and publishing before it is reached
+	// means publishing into a channel nobody is subscribed to.
+	waitForConnections(t, hub, 1)
 
 	event, _ := NewEvent("notification.created", nil)
 	for i := 0; i < 50; i++ {
