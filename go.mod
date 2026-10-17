@@ -6,8 +6,8 @@ require (
 	github.com/alicebob/miniredis/v2 v2.38.0
 	github.com/coder/websocket v1.8.12
 	github.com/go-redis/redis/v8 v8.11.5
-	github.com/lemmego/api v0.6.0
-	github.com/lemmego/auth v0.6.0
+	github.com/lemmego/api v0.6.3
+	github.com/lemmego/auth v0.6.2
 )
 
 require (
@@ -21,11 +21,10 @@ require (
 	github.com/glebarez/go-sqlite v1.22.0 // indirect
 	github.com/go-sql-driver/mysql v1.9.3 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
-	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
-	github.com/lemmego/migration v0.1.24 // indirect
+	github.com/lemmego/migration v0.2.0 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
