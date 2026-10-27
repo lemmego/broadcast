@@ -311,19 +311,19 @@ func (p *Provider) originPatterns() []string {
 //
 // This conversion is the function's whole reason to exist. coder/websocket
 // runs filepath.Match(pattern, u.Host), so an entry carrying a scheme is
-// compared against "productshore.com" as "https://productshore.com" and can
-// never match — while this package's own checkOrigin accepts either form. So
-// a cross-origin allowance written the obvious way, by copying APP_URL, was
-// accepted by the first check and silently refused by the second.
+// compared against "example.com" as "https://example.com" and can never
+// match — while this package's own checkOrigin accepts either form. Without
+// the conversion, an allowlist written the obvious way, by copying APP_URL,
+// is accepted by the first check and refused by the second.
 //
-// Silent in the worst way, too: Accept short-circuits when Origin's host
-// equals r.Host, so same-origin connections worked and nothing surfaced until
-// somebody configured the cross-origin case the field exists for.
+// That failure is invisible in development: Accept short-circuits when
+// Origin's host equals r.Host, so same-origin connections work and nothing
+// surfaces until the cross-origin case the field exists for is configured.
 //
-// A glob is left alone. url.Parse reads "*.productshore.com" as a path with
-// no host, so the scheme test comes first; coder/websocket does support that
-// pattern, which is more than checkOrigin's exact comparison allows, and the
-// asymmetry is recorded in the README rather than smoothed over here.
+// A glob is left alone. url.Parse reads "*.example.com" as a path with no
+// host, so the scheme test comes first; coder/websocket supports that pattern
+// where checkOrigin's exact comparison does not, and the README records the
+// asymmetry.
 func originHost(origin string) string {
 	if !strings.Contains(origin, "://") {
 		return strings.TrimSuffix(origin, "/")
