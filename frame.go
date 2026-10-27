@@ -77,8 +77,8 @@ type Ready struct {
 	// Resync tells the client to re-fetch authoritative state.
 	//
 	// True whenever the server cannot promise nothing was missed — which,
-	// with no backlog, is every reconnection. Claiming otherwise would be
-	// the dishonest default: the client would believe it had resumed.
+	// with no backlog, is every reconnection. The alternative default would
+	// leave the client believing it had resumed when it had not.
 	Resync bool `json:"resync"`
 }
 
@@ -86,9 +86,8 @@ type Ready struct {
 type Refusal struct {
 	Channel Channel `json:"channel"`
 	// Reason is a stable code, not prose: "forbidden", "unauthenticated",
-	// "bad_name", "too_many". It deliberately does not distinguish "not
-	// yours" from "does not exist", which would be a channel-enumeration
-	// oracle.
+	// "bad_name", "too_many". It does not distinguish "not yours" from
+	// "does not exist", which would be a channel-enumeration oracle.
 	Reason string `json:"reason"`
 }
 

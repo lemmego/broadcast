@@ -17,12 +17,12 @@ type rule struct {
 // match reports whether a channel name fits a pattern, and what the
 // placeholders captured.
 //
-// Patterns are matched segment by segment on ".", deliberately not as regular
-// expressions. api's CSRF ExcludePatterns were matched with
-// regexp.MatchString, which is an unanchored "contains", so "/api" also
-// excluded "/x/api/y" — and an authorization matcher with that bug *grants*
-// access rather than merely skipping a check, which nobody would find. There
-// is no regular expression here to get wrong.
+// Patterns are matched segment by segment on ".", not as regular
+// expressions, and that is a security property rather than a simplification.
+// A pattern compiled as an unanchored regular expression matches more than it
+// names — "a.b" would also match "x.a.b.y" — and in an authorization matcher
+// that *grants* access rather than merely skipping a check. There is no
+// regular expression here to get wrong.
 func match(pattern []string, channel string) (Params, bool) {
 	segments := strings.Split(channel, ".")
 	if len(segments) != len(pattern) {

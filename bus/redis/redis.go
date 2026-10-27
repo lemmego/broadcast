@@ -302,9 +302,7 @@ func (b *Bus) ensureChannel(channel broadcast.Channel) error {
 // whole of this function's design. Channel reconnects and re-subscribes on
 // its own and never closes — convenient for a cache, wrong here: events
 // published while the connection was down are gone, and a subscriber left
-// open would receive nothing with no way to know. The first version of this
-// used Channel, and the test for losing Redis caught it sitting silent for
-// five seconds, which is the exact failure this package exists to avoid.
+// open would receive nothing with no way to know it had stopped being told.
 //
 // Receive returns an error when the connection fails, so a loss is an event
 // rather than an absence. A re-subscription is treated the same way, because

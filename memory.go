@@ -22,9 +22,8 @@ type memoryBus struct {
 // memorySubscriber owns the one close of its delivery channel.
 //
 // Both stop and Close end a subscription, and closing an already-closed
-// channel panics — so the close goes through a once that both paths share
-// rather than through a once held by only one of them. The first version had
-// a once inside stop alone, which panicked whenever Close ran first.
+// channel panics — so the close goes through a once that both paths share.
+// A once held by only one of them panics as soon as the other runs first.
 type memorySubscriber struct {
 	deliveries chan Delivery
 	once       sync.Once

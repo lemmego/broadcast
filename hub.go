@@ -127,14 +127,15 @@ var _ Broadcaster = (*Hub)(nil)
 // Publish hands an event to the bus, which delivers it to every subscriber in
 // every process.
 //
-// There is one delivery path on purpose. An earlier design fanned out to
-// local connections directly *and* published to the bus, so that local
-// subscribers kept working while the bus was down — at the cost of an origin
-// nonce on every event and two paths that have to agree about ordering and
-// deduplication. One path is simpler to be correct about, and the case it
-// gives up is a bus that is configured but unreachable, which a single-binary
-// deployment avoids by using the default memory bus rather than configuring
-// one it does not need.
+// There is one delivery path: everything goes through the bus, including
+// delivery to subscribers in this process. Fanning out locally as well would
+// need an origin nonce on every event and two paths that agree about ordering
+// and deduplication.
+//
+// What that gives up is a bus which is configured but unreachable — with no
+// local path, those events are not delivered at all. A deployment that does
+// not need a shared bus should leave the default memory bus in place rather
+// than configure one it cannot rely on.
 func (h *Hub) Publish(ctx context.Context, channel Channel, event Event) error {
 	if err := channel.Validate(); err != nil {
 		return err

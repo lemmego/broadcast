@@ -5,9 +5,9 @@
 // about six concurrent HTTP/1.1 connections and a stream permanently occupies
 // one of them across every tab. Browsers do not apply that cap to WebSockets.
 //
-// It is also the only one of the two that can carry a message from the
-// client, which is what makes the transport seam honest: a contract fitted
-// only to an event stream would have had no inbound path at all.
+// It is also the only one of the two transports that can carry a message from
+// the client, so a Conn obtained here has a working inbound path where an
+// event stream has none.
 package ws
 
 import (
