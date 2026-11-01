@@ -39,8 +39,8 @@ github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
 github.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
-github.com/lemmego/api v0.6.3 h1:BuYtHl7thRBFH22nfklOC1bkROs2B2+g9YC6I+UO3RE=
-github.com/lemmego/api v0.6.3/go.mod h1:w9mZUIwyPGIw6OALqgyuhAbl8Lw7aQjFXOVTZLgFc+U=
+github.com/lemmego/api v0.10.0 h1:X1Mq0LMLvFQvCFjEXXdDQ/B6WgmzawPyc5Vvt1WP4BE=
+github.com/lemmego/api v0.10.0/go.mod h1:i+PEPsqTj6AXQ7im8bhXabCatrBApgmajPGAlrrQ6KU=
 github.com/lemmego/auth v0.6.2 h1:szCEXLMsZJWGX950TcEdeR4vDcTKo1Qivhg1XXY13Ns=
 github.com/lemmego/auth v0.6.2/go.mod h1:ZMMipLZdSOXKaXLe4BGlA8qpkLF6TFBAjIgnFaUOhow=
 github.com/lemmego/migration v0.2.0 h1:e4eE8L65ETE48rAhl8kcuu0PtdSvTFVxvqsMa/7Po40=
@@ -74,8 +74,8 @@ golang.org/x/exp v0.0.0-20260218203240-3dfff04db8fa h1:Zt3DZoOFFYkKhDT3v7Lm9FDME
 golang.org/x/exp v0.0.0-20260218203240-3dfff04db8fa/go.mod h1:K79w1Vqn7PoiZn+TkNpx3BUWUQksGO3JcVX6qIjytmA=
 golang.org/x/mod v0.33.0 h1:tHFzIWbBifEmbwtGz65eaWyGiGZatSrT9prnU8DbVL8=
 golang.org/x/mod v0.33.0/go.mod h1:swjeQEj+6r7fODbD2cqrnje9PnziFuw4bmLbBZFrQ5w=
-golang.org/x/net v0.50.0 h1:ucWh9eiCGyDR3vtzso0WMQinm2Dnt8cFMuQa9K33J60=
-golang.org/x/net v0.50.0/go.mod h1:UgoSli3F/pBgdJBHCTc+tp3gmrU4XswgGRgtnwWTfyM=
+golang.org/x/net v0.49.0 h1:eeHFmOGUTtaaPSGNmjBKpbng9MulQsJURQUAfUwY++o=
+golang.org/x/net v0.49.0/go.mod h1:/ysNB2EvaqvesRkuLAyjI1ycPZlQHM3q01F02UY/MV8=
 golang.org/x/sync v0.19.0 h1:vV+1eWNmZ5geRlYjzm2adRgW2/mcpevXNg50YZtPCE4=
 golang.org/x/sync v0.19.0/go.mod h1:9KTHXmSnoGruLpwFjVSX0lNNA75CykiMECbovNTZqGI=
 golang.org/x/sys v0.6.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=

@@ -182,7 +182,7 @@ func (p *Provider) Provide(a app.App) error {
 	// a provider's Shutdown runs after http.Server.Shutdown, which waits for
 	// active requests, and an open stream is an active request for as long as
 	// somebody has the page open.
-	a.On(app.ServerStopping, func(any) error {
+	a.On(app.ServerStopping, func(context.Context, any) error {
 		p.drain()
 		return nil
 	})

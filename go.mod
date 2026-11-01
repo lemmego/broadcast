@@ -6,7 +6,7 @@ require (
 	github.com/alicebob/miniredis/v2 v2.38.0
 	github.com/coder/websocket v1.8.12
 	github.com/go-redis/redis/v8 v8.11.5
-	github.com/lemmego/api v0.6.3
+	github.com/lemmego/api v0.10.0
 	github.com/lemmego/auth v0.6.2
 )
 
