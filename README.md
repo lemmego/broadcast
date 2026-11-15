@@ -45,6 +45,16 @@ useBroadcast(`private-user.${viewer.id}`, {
 }, { onResync: refetchUnread });
 ```
 
+`client/` holds the browser half: `broadcast.ts`, which imports nothing, plus a
+React hook in `useBroadcast.ts` and a Vue composable in `useBroadcastVue.ts`
+with the signature above. Both expose one `useBroadcast`, so a framework is a
+different import and not a different call.
+
+There is no npm package to install — a Go module carries Go code — so these are
+copied into a project. `lemmego new` does it for you: the client ships in the
+broadcast overlay for every frontend, and the hook or the composable is written
+according to which one the project chose.
+
 ## Choosing a transport
 
 Both transports pass the same conformance suite, so the choice is about your

@@ -17,6 +17,7 @@
   },
   "include": [
     "broadcast.ts",
-    "useBroadcast.ts"
+    "useBroadcast.ts",
+    "useBroadcastVue.ts"
   ]
 }
